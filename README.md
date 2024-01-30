@@ -9,6 +9,6 @@ To display understanding about Webscraping and utilizing APIs
 ### Just kidding here is me actually doing work
 ![](https://github.com/mh48642n/Scraping-and-APIs/blob/main/anime-typing.gif)
 
-###Haha you'll have to peer into the repo to see me work :)))))
+### Haha you'll have to peer into the repo to see me work :)))))
 
 
