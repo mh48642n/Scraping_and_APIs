@@ -268,20 +268,19 @@ class BEA:
 class main:
     pd.set_option('display.max_colwidth', None)
 
-    #fred_data = FRED("565e55b6fbd720965afae15454629fae")   
+    #fred_data = FRED("")   
     #data = fred_data.collection("DFF", ["DGS2", "DGS1"])  
     #print(data)  
 
-    #bls_data = BLS("ee2f076f1d254305bc09f42aa498afab", ['CES3000000001', 'CUSR0000SA0', 'LNS12000000', 'LNS13000000'])
+    #bls_data = BLS("", ['CES3000000001', 'CUSR0000SA0', 'LNS12000000', 'LNS13000000'])
     #data = bls_data.collection(1980, 2022, ["man_emp","core_cpi","employment", "unemp_lvl"])
     #print(data)
 
-    bea_data = BEA("A2D2AB50-A251-4378-8CC1-95E51C78615E")
+    bea_data = BEA("")
     bea_data.pulldata_table()
     
                 
                 
-        
         
             
         
