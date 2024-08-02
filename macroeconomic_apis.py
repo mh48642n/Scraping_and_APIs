@@ -293,9 +293,24 @@ class treasury:
             for key in dict.keys():
                 eps = [key.title + item for item in dict[key]]
                 print(eps)
+    
+    def endpoints(self, version, endpoints):
+        if(version == 1):
+            url = self.v1 + endpoints
+        else:
+            url = self.v2 + endpoints
+        returned = self.format_json(url + "?sort=record_date&page[size]=10000")
 
-    def format_json(self, part_1, part_2):
-        request = requests.get(part_1 + part_2) 
+    #def collection(self):
+        #{version:[endpoints]}
+        
+        
+    #    for key in keys:
+
+
+
+    def format_json(self, url):
+        request = requests.get(url) 
         request = request.json()
 
         json_data = request["data"]
@@ -306,6 +321,7 @@ class treasury:
             treasury_data[key] = [item.get(key) for item in json_data]
         
         treasury_data = pd.DataFrame(treasury_data)
+        return(treasury_data)
 
         
 
@@ -326,7 +342,7 @@ class main:
 
     #bea = BEA("A2D2AB50-A251-4378-8CC1-95E51C78615E")
     #parameters = [{"survey" : "NIPA", "table" : "T20600", "freq" : "M"},
-                  {"survey" : "NIPA", "table" : "T20306", "freq" : "Q"}]
+    #              {"survey" : "NIPA", "table" : "T20306", "freq" : "Q"}]
     #bea_data = bea.bea_tables(parameters)
     #print("BEA", bea_data)
     
@@ -337,8 +353,9 @@ class main:
     #print(data)   
 
     #treasury data
-
-        
+    trea = treasury() 
+    treasury_data = trea.format_json("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/dts/deposits_withdrawals_operating_cash?sort=record_date&page[size]=10000")
+    print(treasury_data.columns)
         
         
         
