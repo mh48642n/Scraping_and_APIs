@@ -2,6 +2,7 @@ from pandas.tseries.offsets import DateOffset
 #from benedict import benedict #developed by fabiocaccamo
 from abc import ABC
 from pandas import option_context
+from itertools import chain
 from datetime import date
 import pandas as pd
 import requests
@@ -300,21 +301,46 @@ class treasury:
         else:
             url = self.v2 + endpoints
         returned = self.format_json(url + "?sort=record_date&page[size]=10000")
+        return(returned)
 
-    #def collection(self):
-        #{version:[endpoints]}
-        
-        
-    #    for key in keys:
+    def collection(self, dict):
+        #{version:[endpoints]}    
+        combos = self.tuple_dict(dict)
+        first = combos.pop(0)
 
+        version = first[0]
+        endpoint = first[1]
+        final = self.endpoints(version, endpoint)
+        
+
+        for unit in combos:
+            second = self.endpoints(unit[0], unit[1])
+            final = pd.merge(final, second, how = "outer").rename(columns = {"record_date":"dates"})
+        
+                
+        return(final)
+    
+    def tuple_dict(self, dict):
+        t_list = []
+        for key in dict.keys():
+            values = dict.get(key)
+            s_list = [(key, value) for value in values]
+            t_list.append(s_list)
+        
+        z_list = []
+        for sub_list in t_list:
+            z_list.extend(sub_list)
+        return(z_list)
 
 
     def format_json(self, url):
         request = requests.get(url) 
         request = request.json()
 
-        json_data = request["data"]
-        keys = json_data[0].keys()
+        json_data = request.get("data")
+        #keys = list(json_data[0].keys())
+        block = json_data[0]
+        keys = list(block.keys())
 
         treasury_data = {}
         for key in keys:
@@ -329,18 +355,15 @@ class main:
 
     pd.set_option('display.max_colwidth', None)
 
-    #Remember to remove api keys
-
-    #fred = FRED("565e55b6fbd720965afae15454629fae")   
+    #fred = FRED()   
     #fred_data = fred.collection(["DFF","DGS1MO","DGS3MO", "DGS6MO" ,"DGS1", "DGS2", "DGS5", "DGS7", "DGS10", "DGS20", "DGS30"])      
     #print("Fred", fred_data)
     
-    #bls = BLS("ee2f076f1d254305bc09f42aa498afab", ['CEU3000000001', 'CUUR0000SA0', 'LNU02000000', 'LNU03000000'])
+    #bls = BLS(, ['CEU3000000001', 'CUUR0000SA0', 'LNU02000000', 'LNU03000000'])
     #print("BLS")
     #bls_data = bls.collection(1980, 2024, ["man_emp","cpi","employment", "unemp_lvl"])
     
-
-    #bea = BEA("A2D2AB50-A251-4378-8CC1-95E51C78615E")
+    #bea = BEA()
     #parameters = [{"survey" : "NIPA", "table" : "T20600", "freq" : "M"},
     #              {"survey" : "NIPA", "table" : "T20306", "freq" : "Q"}]
     #bea_data = bea.bea_tables(parameters)
@@ -354,8 +377,9 @@ class main:
 
     #treasury data
     trea = treasury() 
-    treasury_data = trea.format_json("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/dts/deposits_withdrawals_operating_cash?sort=record_date&page[size]=10000")
-    print(treasury_data.columns)
+    #treasury_data = trea.format_json("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/dts/deposits_withdrawals_operating_cash?sort=record_date&page[size]=10000")
+    treasury_data = trea.collection({ 1 : ["/accounting/dts/federal_tax_deposits", "/accounting/dts/public_debt_transactions"], 2 : ["/accounting/od/debt_to_penny"]})
+    print(treasury_data.columns, treasury_data)
         
         
         
