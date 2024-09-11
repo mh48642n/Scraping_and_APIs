@@ -8,7 +8,9 @@ import json
 import math
 import os
 
-
+headers = {
+    "User-Agent" : "Student H"
+}
 
 class treasury:
 
@@ -71,15 +73,7 @@ class treasury:
     
     def tuple_dict(self, dict):
         t_list = []
-        #for key in dict.keys():
-        #    values = dict.get(key)
-        #    s_list = [(key, value) for value in values]
-        #    t_list.append(s_list)
         
-        #z_list = []
-        #for sub_list in t_list:
-        #    z_list.extend(sub_list)
-        #return(z_list)
         for page in dict:
             list = [(k, v) for k, v in dict.items()]
             t_list.extend(list)
@@ -87,12 +81,12 @@ class treasury:
         return(t_list)
 
 
-
     def format_json(self, url):
-        request = requests.get(url) 
+        request = requests.get(url, headers = headers) 
         request = request.json()
 
         json_data = request.get("data")
+        #print(json_data)
         #keys = list(json_data[0].keys())
         block = json_data[0]
         keys = list(block.keys())
@@ -104,14 +98,9 @@ class treasury:
         treasury_data = pd.DataFrame(treasury_data)
         return(treasury_data)
 
+    
 class main:
 
-    treas = treasury()
-    treasury_data = treas.collection({2:"accounting/od/debt_to_penny"})
-    print(treasury_data) 
-    # 
-
-    #tr = treas.format_json("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/debt_to_penny?sort=record_date&page[size]=10000&format=json") 
-    #print(tr)
-       
-    
+    tr = treasury()
+    data = tr.collection({"2":"accounting/od/debt_to_penny", "1":"accounting/od/auctions_query"})
+    print(data)
