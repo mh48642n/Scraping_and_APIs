@@ -45,16 +45,18 @@ class treasury:
                 print(eps)
     
     def endpoints(self, version, endpoints):
-        if(version == 1):
+        if(version != "2"):
             url = self.v1 + endpoints
         else:
             url = self.v2 + endpoints
+        print(url)
         returned = self.format_json(url + "?sort=record_date&page[size]=9000&format=json")
         return(returned)
 
     def collection(self, dict):
         #{version:[endpoints]}    
-        combos = self.tuple_dict(dict)
+        #creates the tuple pairs with dictionary
+        combos = [(k, v) for k, v in dict.items()]
         print(combos)
         first = combos.pop(0)
 
@@ -71,25 +73,16 @@ class treasury:
         final.drop([item for item in list_columns if item.startswith("record")], axis = 1, inplace = True)
         return(final)
     
-    def tuple_dict(self, dict):
-        t_list = []
-        
-        for page in dict:
-            list = [(k, v) for k, v in dict.items()]
-            t_list.extend(list)
-
-        return(t_list)
-
 
     def format_json(self, url):
         request = requests.get(url, headers = headers) 
         request = request.json()
 
+        print(request.keys())
+
         json_data = request.get("data")
-        #print(json_data)
-        #keys = list(json_data[0].keys())
-        block = json_data[0]
-        keys = list(block.keys())
+        print(type(json_data))
+        keys = list(json_data[0].keys())
 
         treasury_data = {}
         for key in keys:
@@ -98,9 +91,3 @@ class treasury:
         treasury_data = pd.DataFrame(treasury_data)
         return(treasury_data)
 
-    
-class main:
-
-    tr = treasury()
-    data = tr.collection({"2":"accounting/od/debt_to_penny", "1":"accounting/od/auctions_query"})
-    print(data)
