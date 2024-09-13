@@ -44,24 +44,24 @@ class treasury:
                 eps = [key.title + item for item in dict[key]]
                 print(eps)
     
+    #gets the endpoints based off the endpoints
     def endpoints(self, version, endpoints):
         if(version != "2"):
             url = self.v1 + endpoints
         else:
             url = self.v2 + endpoints
-        print(url)
         returned = self.format_json(url + "?sort=record_date&page[size]=9000&format=json")
         return(returned)
 
+    #collectinc data putting data 
     def collection(self, dict):
         #{version:[endpoints]}    
         #creates the tuple pairs with dictionary
         combos = [(k, v) for k, v in dict.items()]
-        print(combos)
-        first = combos.pop(0)
 
-        version = first[0]
-        endpoint = first[1]
+        version = combos.pop[0]
+        endpoint = combos.pop[1]
+
         final = self.endpoints(version, endpoint)
         
         for unit in combos:

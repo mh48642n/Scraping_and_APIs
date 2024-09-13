@@ -11,13 +11,6 @@ import os
 
 
 
-#Need dataset of these variables
-# Macroeconomic variables: Federal Funds Rate, Labor Participation Force Rate, Economic Growth 
-# Economic Release Dates: Unemployment, CPI(core and all), Economic growth, PMI, 
-# Companies: 15 years of small cap companies 
-# Idiosyncractic risks for small cap companies: SEC api  
-# Treasury Data: Yields for different bond types, quantity of each across time, how much does the Fed have(New York Fed)
-# Public Debt: Ceilings, Suspension, Policy releasing
         
 pd.set_option('display.max_colwidth', None)
 
