@@ -9,7 +9,7 @@ import math
 import os
 
 headers = {
-    "User-Agent" : "Student H"
+    "User-Agent" : "Student M"
 }
 
 class treasury:
@@ -44,13 +44,14 @@ class treasury:
                 eps = [key.title + item for item in dict[key]]
                 print(eps)
     
-    #gets the endpoints based off the endpoints
+    #gets the url given the version and endpoint
     def endpoints(self, version, endpoints):
-        if(version != "2"):
+        if(version == "1"):
             url = self.v1 + endpoints
         else:
             url = self.v2 + endpoints
         returned = self.format_json(url + "?sort=record_date&page[size]=9000&format=json")
+        
         return(returned)
 
     #collectinc data putting data 
@@ -58,31 +59,30 @@ class treasury:
         #{version:[endpoints]}    
         #creates the tuple pairs with dictionary
         combos = [(k, v) for k, v in dict.items()]
+        first = combos.pop(0)
 
-        version = combos.pop[0]
-        endpoint = combos.pop[1]
+        version = first[0]
+        endpoint = first[1]
 
         final = self.endpoints(version, endpoint)
         
+        #iterates through tuple pairs of versions and endpoints
         for unit in combos:
             second = self.endpoints(unit[0], unit[1])
             final = pd.merge(final, second, how = "outer")
         
         final = final.rename(columns = {"record_date":"dates"})
-        list_columns = final.columns
-        final.drop([item for item in list_columns if item.startswith("record")], axis = 1, inplace = True)
-        return(final)
+        final.drop([item for item in final.columns if item.startswith("record")], axis = 1, inplace = True)
+        print(final)
+        #return(final)
     
-
+    #captures the json for each dataset
     def format_json(self, url):
         request = requests.get(url, headers = headers) 
         request = request.json()
 
-        print(request.keys())
-
         json_data = request.get("data")
-        print(type(json_data))
-        keys = list(json_data[0].keys())
+        keys = list(json_data.pop(0).keys())
 
         treasury_data = {}
         for key in keys:
@@ -90,4 +90,5 @@ class treasury:
         
         treasury_data = pd.DataFrame(treasury_data)
         return(treasury_data)
+
 

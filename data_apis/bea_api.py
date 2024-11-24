@@ -10,6 +10,13 @@ import math
 import os
 
 
+header = {
+
+    "User-Agent" : "Student Mars"
+}
+
+
+
 
 class BEA:
     def __init__(self, key):
@@ -103,18 +110,25 @@ class BEA:
     #ask carmine how to make absract classes work in python
     #formats the json into a python dataframe
     def format_json(self, url, value):
-        request = requests.get(url)
+        request = requests.get(url, headers = header)
         request = request.json()
 
-        data = request["BEAAPI"]["Results"].get(value)
-        keys = list(data[0].keys())
+        print(request)
 
-        #pull data from json file that you need
-        dict = {}
-        for key in keys:
-            dict[key] = [d.get(key) for d in data]
-        returned = pd.DataFrame(dict)
-        
+        try:  
+            data = request["BEAAPI"]["Results"].get(value)
+            #first = data[0]
+            #print(data)
+            keys = list(data[0].keys())
+
+            #pull data from json file that you need
+            dict = {}
+            for key in keys:
+                dict[key] = [d.get(key) for d in data]
+            returned = pd.DataFrame(dict)
+        except TypeError:
+            returned = "Failure dataset does not exist"
+            
         return(returned)
     
     def collection(self, parameters):
