@@ -12,8 +12,11 @@ from datetime import *
 import datetime
 
 
+#place api keys up here as objects
 
-
+fred = ms.FRED(fred_key)
+bls = bs.BLS(bls_key)
+bea = ba.BEA(bea_key)
 treasury = tr.treasury()
 
 class collection_data:
