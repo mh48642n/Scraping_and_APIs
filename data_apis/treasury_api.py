@@ -50,9 +50,9 @@ class treasury:
             url = self.v1 + endpoints
         else:
             url = self.v2 + endpoints
-        returned = self.format_json(url + "?sort=record_date&page[size]=9000&format=json")
+        returned = self.format_json(url + "?sort=record_date&page[size]=10000&format=json")
         
-        return(returned)
+        return returned 
 
     #collectinc data putting data 
     def collection(self, dict):
@@ -72,9 +72,15 @@ class treasury:
             final = pd.merge(final, second, how = "outer")
         
         final = final.rename(columns = {"record_date":"dates"})
-        final.drop([item for item in final.columns if item.startswith("record")], axis = 1, inplace = True)
+        final["dates"] = pd.to_datetime(final["dates"])
+
         print(final)
-        #return(final)
+        final = final.drop([item for item in final.columns if item.startswith("record")], axis = 1)
+
+        print(final)
+        
+
+        return final
     
     #captures the json for each dataset
     def format_json(self, url):
@@ -84,11 +90,13 @@ class treasury:
         json_data = request.get("data")
         keys = list(json_data.pop(0).keys())
 
+        print(json_data)
+
         treasury_data = {}
         for key in keys:
             treasury_data[key] = [item.get(key) for item in json_data]
         
         treasury_data = pd.DataFrame(treasury_data)
-        return(treasury_data)
+        return treasury_data 
 
 

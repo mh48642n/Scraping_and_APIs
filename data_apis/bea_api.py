@@ -83,7 +83,7 @@ class BEA:
 
         if(frequency == "M"):
             returned["TimePeriod"] = returned["TimePeriod"].str[:4] + "-" + returned["TimePeriod"].str[5:] + "-" + "01"
-            returned["dates"] = pd.to_datetime(returned["TimePeriod"])
+            returned["dates"] = pd.to_datetime(returned["TimePeriod"]) + pd.DateOffset(months = 1)
         elif(frequency == "Q"):
             returned["TimePeriod"] = returned["TimePeriod"].str[:4] + "-" + returned["TimePeriod"].str[4:] 
             returned["dates"] = pd.PeriodIndex(returned["TimePeriod"], freq = 'Q').to_timestamp() + pd.DateOffset(months = 3)
@@ -92,14 +92,25 @@ class BEA:
             returned["dates"] = pd.to_datetime(returned["TimePeriod"]) 
 
 
-        returned = returned[['dates', 'LineDescription', 'METRIC_NAME', 'CL_UNIT', 'DataValue']]
-        print(returned)
+        returned = returned[['dates', 'LineDescription', 'METRIC_NAME', 'DataValue']].reset_index(drop = True)
+        returned = self.pivoting(returned)
 
-        
-        returned = returned.pivot(index = "dates", columns = "LineDescription", values = "DataValue").reset_index(0)
-        print(returned)
+        return returned
 
-        return(returned)      
+    #Pivoting data by each of the description
+    def pivoting(self, returned):
+
+        description = returned["LineDescription"].unique()
+        concat = pd.DataFrame()        
+
+        for item in description:
+            df = returned[returned["LineDescription"] == item]
+            df = df.pivot_table(index = "dates", columns = "LineDescription", values = "DataValue", aggfunc = 'first')
+            concat = pd.concat([concat, df], axis = 1)
+
+        concat = concat.reset_index(drop = False)
+        return concat
+
 
     #allows user to check the description and frequency of dataset 
     def check_freq(self, survey, table): 
@@ -107,13 +118,12 @@ class BEA:
         tables  = self.format_json(url, "ParamValue")
         print(tables["Description"].loc[tables["TableName"] == table])
 
-    #ask carmine how to make absract classes work in python
     #formats the json into a python dataframe
     def format_json(self, url, value):
         request = requests.get(url, headers = header)
         request = request.json()
 
-        print(request)
+        #print(request)
 
         try:  
             data = request["BEAAPI"]["Results"].get(value)
@@ -127,17 +137,21 @@ class BEA:
                 dict[key] = [d.get(key) for d in data]
             returned = pd.DataFrame(dict)
         except TypeError:
-            returned = "Failure dataset does not exist"
+            returned = "Failure......dataset does not exist"
             
-        return(returned)
+        return returned
     
     def collection(self, parameters):
-        position = parameters.pop(0)
-    
-        bea_data = self.pulldata_table(position.get("survey"), position.get("table"), position.get("freq"))
+        if(len(parameters) <= 2):
 
-        for parameter in parameters:
-            second_data = self.pulldata_table(parameter.get("survey"), parameter.get("table"), parameter.get("freq"))
-            bea_data = pd.merge(bea_data, second_data, how = "outer")
-        
-        return(bea_data)
+            #Pulls first table in series to merge later
+            position = parameters.pop(0)
+            bea_data = self.pulldata_table(position.get("survey"), position.get("table"), position.get("freq"))
+
+            for parameter in parameters:
+                second_data = self.pulldata_table(parameter.get("survey"), parameter.get("table"), parameter.get("freq"))
+                bea_data = pd.merge(bea_data, second_data, how = "outer")
+        else:
+            bea_data = self.pulldata_table(position.get("survey"), position.get("table"), position.get("freq"))        
+
+        return bea_data 

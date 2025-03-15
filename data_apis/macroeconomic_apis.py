@@ -36,7 +36,7 @@ class FRED:
         request = requests.get(url)
         request = request.json()
 
-        return(request)
+        return request
 
     #collected the series based off the series list
     def collection(self, series):
@@ -49,7 +49,8 @@ class FRED:
             fred_dict = self.wrangling(data, serie)    
             final_dict = pd.merge(final_dict, fred_dict, how = "outer", on = "dates")
 
-        return(final_dict)
+
+        return final_dict
 
     #allows for the collection of exactly one series, required wihen collecting more than one series
     def pull(self, series):
@@ -59,13 +60,15 @@ class FRED:
         f_dict["dates"] = [object["observations"][y].get("date") for y in range(len(object["observations"]))]
         f_dict[series] = [object["observations"][y].get("value") for y in range(len(object["observations"]))]
 
-        return(self.wrangling(pd.DataFrame(f_dict), series))
+        to_return = self.wrangling(pd.DataFrame(f_dict), series)
+
+        return to_return
    
     #changing the datatype of certain variables
     def wrangling(self, fred_dict, se):
         fred_dict["dates"] = pd.to_datetime(fred_dict["dates"])
         fred_dict[se] = pd.to_numeric(fred_dict[se], errors = "coerce")
-        return(fred_dict)
+        return fred_dict
 
         
 
