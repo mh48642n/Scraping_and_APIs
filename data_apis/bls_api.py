@@ -19,6 +19,8 @@ class BLS:
         self.header = {'Content-type' : 'application/json'}
         
     def time_series_json(self,first_year,last_year, series):
+        print("Series: ", series,
+              "\nDates: ", first_year, " - ", last_year)
         data = json.dumps({"seriesid" : series, 
                    "startyear": first_year, "endyear" : last_year, 
                    "registrationkey": self.key})
@@ -34,20 +36,20 @@ class BLS:
         rename = bundle[3]
 
         difference = (date_2 - date_1)
-        if difference > 20:     
+        if difference >= 20:     
             dates = self.split(difference, date_1, date_2)
-            first = self.time_series_json(dates["first_year"][0], dates["second_year"][0], series).reset_index(drop = True, inplace = False)
-            
-            for x in range(1, 3):
-                bls_dict = self.time_series_json(dates["first_year"][x], dates["second_year"][x], series)
+            f_date = dates.pop(0)
+            first = self.time_series_json(f_date[0], f_date[1], series).reset_index(drop = True, inplace = False)
+            for date in dates:
+                print(date[0], date[1])
+                bls_dict = self.time_series_json(date[0], date[1], series)
                 first = pd.merge(first, bls_dict, how = "outer").reset_index(drop = True, inplace = False)
 
         else:
-            bls_dict = self.time_series_json(date_1, date_2, series)
+            first = self.time_series_json(date_1, date_2, series)
 
-        if(len(rename) == 0):
-            pass
-        else:
+
+        if(len(rename) != 0):
             if(len(rename) == len(series)):
                 for i in range(0, len(series)):
                     first = first.rename(columns = {series[i]: rename[i]})
@@ -57,26 +59,32 @@ class BLS:
         return first
     
     def split(self, difference,date_1, date_2):
-        if(difference % 3 != 0):
-            split = math.ceil(difference/3)
-        else:
-            split = difference/3
+        
+        i = 2
+        while True:
+            value = math.floor(difference/i)
+            if (value <= 19.0) and (value >= 9.0):
+                break
+            else:
+                i += 1
+
+        dates = []
+
+        for m in range(0, i):
+            if m == 0:
+                next = date_1 + value
+                dates.append((date_1, next))
+            elif m == (i - 1):
+                dates.append((next, date_2))
+            else:
+                next_2 = value + next
+                dates.append((next,  next_2))
+                next = next_2
             
-        date1 = int(date_1 + split)
-        date2 = int(date1 + split)
-
-        # print("split = ", split,
-        #       "\ndate_1 = ", date_1,
-        #       "\ndate1 = ", date1,
-        #       "\ndate2 = ", date2,
-        #       "\ndate_2 = ", date_2  
-        # )
-
-        dates = {"first_year" : [date_1, date1+1, date2+1],"second_year":[date1, date2, date_2]}
-
         return dates
 
     def format_json(self, json):
+
         bls_dict = {"dates":[],"value":[],"series":[]}   
         
         for i in range(0, len(json['Results']['series'])):
@@ -118,21 +126,31 @@ class BLS:
 
 
     def wrangling(self, bls_dict, confirm):
-    
+        bls_dict = self.quarter_partition(bls_dict)
+
         if(confirm == "Annual"):
             print(confirm)
         elif(confirm == "Quarter"):
             print(confirm)
         else:
             print(confirm)
-            bls_dict["dates"] = pd.to_datetime(bls_dict["dates"]) 
+            bls_dict["dates"] = pd.to_datetime(bls_dict["dates"], format = "mixed") 
             bls_dict["dates"] = bls_dict["dates"] + pd.DateOffset(months = 1)
 
-        
-        bls_dict["value"] = pd.to_numeric(bls_dict["value"], errors = "coerce")
-        #bls_dict = bls_dict.pivot(index = "dates", columns = "index", values = "value").reset_index(inplace = False)
-
-        
+        bls_dict["value"] = pd.to_numeric(bls_dict["value"], errors = "coerce")        
         return bls_dict
  
+    def quarter_partition(self, data):
+        data["adjust"] = data["dates"].str.contains("Quarter")
+        quarters = {"1":"01", "2":"04", "3":"07", "4":"10"}
+
+        for i in range(0 , len(data)):
+            if data["adjust"][i] == False:
+                pass
+            else:
+                value = data.loc[i, "dates"]
+                print(value)
+                data.loc[i, "dates"] = value[-4:] + "-" + quarters[value[0:1]] + "-01"
+        
+        return(data)
 
